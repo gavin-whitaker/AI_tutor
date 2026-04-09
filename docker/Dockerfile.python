@@ -1,0 +1,6 @@
+FROM python:3.11-slim
+
+WORKDIR /sandbox
+
+# No extra packages — keep the image minimal and fast
+CMD ["python3", "-"]
