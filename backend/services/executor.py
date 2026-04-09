@@ -23,7 +23,7 @@ def _run_python(code: str, timeout: int) -> ExecutionResult:
     try:
         result = subprocess.run(
             [
-                "docker", "run", "--rm",
+                "docker", "run", "--rm", "-i",
                 "--network=none",
                 "--memory=128m",
                 "--cpus=0.5",
@@ -54,7 +54,7 @@ def _run_java(code: str, timeout: int) -> ExecutionResult:
     try:
         result = subprocess.run(
             [
-                "docker", "run", "--rm",
+                "docker", "run", "--rm", "-i",
                 "--network=none",
                 "--memory=256m",
                 "--cpus=0.5",
