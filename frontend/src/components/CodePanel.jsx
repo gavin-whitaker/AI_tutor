@@ -21,6 +21,7 @@ export default function CodePanel({
   code, setCode,
   stdout, stderr, exitCode,
   running, onRun, error,
+  keepChatOnRun, setKeepChatOnRun,
 }) {
   const handleLanguageChange = (lang) => {
     setLanguage(lang)
@@ -66,6 +67,21 @@ export default function CodePanel({
           }}
         />
       </div>
+
+      <label className="mt-3 flex items-start gap-2.5 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={keepChatOnRun}
+          onChange={(e) => setKeepChatOnRun(e.target.checked)}
+          className="mt-0.5 rounded border-gray-600 bg-gray-800 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 focus:ring-offset-gray-950"
+        />
+        <span className="text-xs text-gray-400 leading-snug">
+          Keep tutor chat when re-running
+          <span className="block text-gray-600 mt-0.5">
+            First run or expired session still starts fresh on the server.
+          </span>
+        </span>
+      </label>
 
       {/* Run button */}
       <button

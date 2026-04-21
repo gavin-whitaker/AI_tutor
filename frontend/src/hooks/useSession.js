@@ -14,6 +14,7 @@ export function useSession() {
   const [hintCount, setHintCount] = useState(0)
   const [maxHints] = useState(5)
   const [resolved, setResolved] = useState(false)
+  const [keepChatOnRun, setKeepChatOnRun] = useState(false)
   const [running, setRunning] = useState(false)
   const [chatLoading, setChatLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -22,22 +23,24 @@ export function useSession() {
     if (!code.trim()) return
     setRunning(true)
     setError(null)
-    setMessages([])
-    setHintCount(0)
-    setResolved(false)
 
     try {
-      const data = await apiRunCode(SESSION_ID, language, code)
+      const data = await apiRunCode(SESSION_ID, language, code, keepChatOnRun)
       setStdout(data.stdout)
       setStderr(data.stderr)
       setExitCode(data.exit_code)
-      setMessages([{ role: 'tutor', content: data.tutor_message }])
+      // Older backends omit conversation_reset; treat missing as full reset.
+      if (data.conversation_reset !== false) {
+        setMessages([{ role: 'tutor', content: data.tutor_message }])
+        setHintCount(0)
+      }
+      setResolved(false)
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to run code. Is the backend running?')
     } finally {
       setRunning(false)
     }
-  }, [code, language])
+  }, [code, language, keepChatOnRun])
 
   const sendMessage = useCallback(async (text) => {
     if (!text.trim() || resolved) return
@@ -74,6 +77,7 @@ export function useSession() {
     messages,
     hintCount, maxHints,
     resolved,
+    keepChatOnRun, setKeepChatOnRun,
     running, chatLoading,
     error,
     runCode,

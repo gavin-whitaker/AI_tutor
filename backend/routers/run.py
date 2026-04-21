@@ -5,6 +5,14 @@ from backend.services import executor, analyzer, dialogue, session as session_st
 router = APIRouter()
 
 
+def _apply_run_result(sess, language: str, code: str, stderr: str, bug) -> None:
+    sess.language = language
+    sess.code = code
+    sess.error = stderr
+    sess.bug_analysis = bug
+    sess.resolved = False
+
+
 @router.post("/run", response_model=RunResponse)
 def run_code(req: RunRequest):
     if req.language not in ("python", "java"):
@@ -16,16 +24,29 @@ def run_code(req: RunRequest):
     if result.exit_code != 0 or result.stderr:
         bug = analyzer.analyze(req.language, req.code, result.stderr)
 
-    sess = session_store.create_or_reset_session(req.session_id)
-    sess.language = req.language
-    sess.code = req.code
-    sess.error = result.stderr
-    sess.bug_analysis = bug
-    sess.hint_count = 0
-    sess.resolved = result.exit_code == 0 and not result.stderr
-
     initial_msg = dialogue.build_initial_message(result.stderr, result.exit_code)
-    sess.conversation_history = [{"role": "assistant", "content": initial_msg}]
+    seed = [
+        {"role": "user", "content": dialogue.SEED_USER_MESSAGE},
+        {"role": "assistant", "content": initial_msg},
+    ]
+
+    existing = session_store.get_session(req.session_id)
+    if req.keep_chat and existing is not None:
+        _apply_run_result(existing, req.language, req.code, result.stderr, bug)
+        session_store.update_session(existing)
+        return RunResponse(
+            stdout=result.stdout,
+            stderr=result.stderr,
+            exit_code=result.exit_code,
+            bug_analysis=bug,
+            tutor_message="",
+            conversation_reset=False,
+        )
+
+    sess = session_store.create_or_reset_session(req.session_id)
+    _apply_run_result(sess, req.language, req.code, result.stderr, bug)
+    sess.hint_count = 0
+    sess.conversation_history = seed
     session_store.update_session(sess)
 
     return RunResponse(
@@ -34,4 +55,5 @@ def run_code(req: RunRequest):
         exit_code=result.exit_code,
         bug_analysis=bug,
         tutor_message=initial_msg,
+        conversation_reset=True,
     )

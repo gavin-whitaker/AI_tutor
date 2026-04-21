@@ -12,6 +12,7 @@ class RunRequest(BaseModel):
     session_id: str
     language: str  # "python" or "java"
     code: str
+    keep_chat: bool = False
 
 
 class RunResponse(BaseModel):
@@ -20,6 +21,7 @@ class RunResponse(BaseModel):
     exit_code: int
     bug_analysis: Optional[BugAnalysis] = None
     tutor_message: str
+    conversation_reset: bool
 
 
 class ChatRequest(BaseModel):

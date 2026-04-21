@@ -37,6 +37,8 @@ export default function App() {
             running={session.running}
             onRun={session.runCode}
             error={session.error}
+            keepChatOnRun={session.keepChatOnRun}
+            setKeepChatOnRun={session.setKeepChatOnRun}
           />
         </div>
 

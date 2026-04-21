@@ -7,8 +7,13 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-export async function runCode(sessionId, language, code) {
-  const res = await api.post('/run', { session_id: sessionId, language, code })
+export async function runCode(sessionId, language, code, keepChat = false) {
+  const res = await api.post('/run', {
+    session_id: sessionId,
+    language,
+    code,
+    keep_chat: keepChat,
+  })
   return res.data
 }
 
